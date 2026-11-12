@@ -78,3 +78,47 @@ assistantRouter.get('/conversations/:id', async (req: Request, res: Response, ne
     next(error);
   }
 });
+
+/**
+ * POST /api/assistant/conversations
+ * Explicitly create a new conversation
+ */
+assistantRouter.post('/conversations', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const title = req.body?.title || 'New Conversation';
+    const conversation = await prisma.conversation.create({
+      data: {
+        demoUserId: req.demoUserId,
+        title,
+      },
+      include: {
+        messages: true,
+      },
+    });
+    res.status(201).json({ success: true, data: conversation });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * DELETE /api/assistant/conversations/:id
+ * Delete a specific conversation and all associated messages
+ */
+assistantRouter.delete('/conversations/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = req.params.id;
+    await prisma.conversationMessage.deleteMany({
+      where: { conversationId: id },
+    });
+    await prisma.conversation.deleteMany({
+      where: {
+        id,
+        demoUserId: req.demoUserId,
+      },
+    });
+    res.json({ success: true, message: 'Conversation deleted' });
+  } catch (error) {
+    next(error);
+  }
+});

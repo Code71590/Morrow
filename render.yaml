@@ -38,3 +38,4 @@ services:
         value: sandbox
       - key: PAYPAL_CURRENCY
         value: USD
+

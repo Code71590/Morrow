@@ -25,7 +25,7 @@ export class Mem0Service {
   }
 
   /**
-   * Search user memories via POST /v3/memories/search/
+   * Search user memories via POST /v1/memories/search/
    */
   public async searchMemories(query: string, userId: string, limit = 10): Promise<Mem0MemoryItem[]> {
     if (!this.isConfigured()) {
@@ -33,14 +33,12 @@ export class Mem0Service {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/v3/memories/search/`, {
+      const response = await fetch(`${this.baseUrl}/v1/memories/search/`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify({
           query: query || 'shopping brand preferences and budget',
-          filters: {
-            user_id: userId,
-          },
+          user_id: userId,
           limit,
         }),
       });
@@ -69,7 +67,7 @@ export class Mem0Service {
   }
 
   /**
-   * Add new conversation messages to Mem0: POST /v3/memories/add/
+   * Add new conversation messages to Mem0: POST /v1/memories/
    */
   public async addMemory(
     messages: Array<{ role: string; content: string }>,
@@ -86,7 +84,7 @@ export class Mem0Service {
     }));
 
     try {
-      const response = await fetch(`${this.baseUrl}/v3/memories/add/`, {
+      const response = await fetch(`${this.baseUrl}/v1/memories/`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify({
@@ -102,9 +100,10 @@ export class Mem0Service {
       }
 
       const data: any = await response.json();
+      const first = Array.isArray(data) ? data[0] : data;
       return {
-        eventId: data.event_id || data.id,
-        status: data.status || 'PENDING',
+        eventId: first?.event_id || first?.id || data.event_id || data.id,
+        status: first?.status || data.status || 'PENDING',
       };
     } catch (error) {
       console.warn('Mem0 add memory error (graceful fallback):', error);
@@ -135,7 +134,7 @@ export class Mem0Service {
   }
 
   /**
-   * List all stored memories for a demo user
+   * List all stored memories for a demo user: GET /v1/memories/?user_id={userId}
    */
   public async getAllUserMemories(userId: string): Promise<Mem0MemoryItem[]> {
     if (!this.isConfigured()) {
@@ -143,13 +142,13 @@ export class Mem0Service {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/v2/memories/?user_id=${encodeURIComponent(userId)}`, {
+      const response = await fetch(`${this.baseUrl}/v1/memories/?user_id=${encodeURIComponent(userId)}`, {
         method: 'GET',
         headers: this.getHeaders(),
       });
 
       if (!response.ok) {
-        // Fallback to broad search if v2 listing is unsupported
+        // Fallback to broad search if listing is unsupported
         return this.searchMemories('shopping preferences', userId, 30);
       }
 
