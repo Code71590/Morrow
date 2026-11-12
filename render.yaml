@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: morrow-app
+    env: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        value: "file:./dev.db"
+      - key: MORROW_SESSION_SECRET
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.8-flash
+      - key: MEM0_API_KEY
+        sync: false
+      - key: CHANNEL3_API_KEY
+        sync: false
+      - key: CHANNEL3_WEBHOOK_SECRET
+        sync: false
+      - key: CHANNEL3_COUNTRY
+        value: US
+      - key: CHANNEL3_LANGUAGE
+        value: en
+      - key: CHANNEL3_CURRENCY
+        value: USD
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_ENV
+        value: sandbox
+      - key: PAYPAL_CURRENCY
+        value: USD

@@ -1,0 +1,173 @@
+// Prisma schema for Morrow Backend
+// Datasource: SQLite for local persistence (schema designed to be portable to PostgreSQL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DemoSession {
+  id               String   @id @default(uuid())
+  sessionTokenHash String   @unique
+  demoUserId       String   @default("morrow_demo_user")
+  createdAt        DateTime @default(now())
+  expiresAt        DateTime
+
+  @@map("demo_sessions")
+}
+
+model Conversation {
+  id                  String                @id @default(uuid())
+  demoUserId          String
+  geminiInteractionId String?
+  title               String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  messages            ConversationMessage[]
+
+  @@map("conversations")
+}
+
+model ConversationMessage {
+  id             String       @id @default(uuid())
+  conversationId String
+  role           String       // "user" | "assistant" | "system"
+  content        String
+  toolCallsJson  String?      // Stored JSON representation of tool calls/results
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("conversation_messages")
+}
+
+model Product {
+  id                String             @id @default(uuid())
+  channel3ProductId String             @unique
+  title             String
+  brand             String
+  imageUrl          String
+  description       String?
+  category          String?
+  sourceCurrency    String             @default("USD")
+  metadata          String?            // JSON: variants, attributes, rating, etc.
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  offers            ProductOffer[]
+  priceWatches      PriceWatch[]
+  priceObservations PriceObservation[]
+
+  @@map("products")
+}
+
+model ProductOffer {
+  id             String   @id @default(uuid())
+  productId      String
+  merchantDomain String
+  merchantUrl    String
+  price          Float
+  currency       String   @default("USD")
+  availability   String   @default("InStock")
+  observedAt     DateTime @default(now())
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_offers")
+}
+
+model PriceWatch {
+  id                     String    @id @default(uuid())
+  demoUserId             String
+  productId              String
+  targetPrice            Float
+  maximumTotalPrice      Float?
+  currency               String    @default("USD")
+  purchaseMode           String    @default("notify") // "notify" | "auto_purchase"
+  merchantDomains        String?   // JSON array of strings
+  variantSelection       String?   // JSON object or array
+  affordabilityRequired  Boolean   @default(true)
+  channel3SubscriptionId String?
+  status                 String    @default("active") // "active" | "paused" | "triggered" | "cancelled"
+  lastCheckedAt          DateTime  @default(now())
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  product                Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("price_watches")
+}
+
+model PriceObservation {
+  id             String   @id @default(uuid())
+  productId      String
+  merchantDomain String
+  price          Float
+  currency       String   @default("USD")
+  observedAt     DateTime @default(now())
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("price_observations")
+}
+
+model WebhookEvent {
+  id              String   @id @default(uuid())
+  provider        String   // "channel3" | "paypal"
+  providerEventId String   @unique
+  eventType       String
+  payload         String?
+  processedAt     DateTime @default(now())
+
+  @@map("webhook_events")
+}
+
+model Order {
+  id                String   @id @default(uuid())
+  demoUserId        String
+  internalReference String   @unique
+  paypalOrderId     String?  @unique
+  amount            Float
+  currency          String   @default("USD")
+  orderStatus       String   @default("created") // "created" | "approved" | "completed" | "cancelled" | "failed"
+  captureId         String?
+  itemsJson         String?  // JSON array of order items
+  merchant          String?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("orders")
+}
+
+model FinancialProfile {
+  id                String   @id @default(uuid())
+  demoUserId        String   @unique
+  currency          String   @default("USD")
+  monthlyIncome     Float    @default(6500)
+  availableFunds    Float    @default(6500)
+  essentialExpenses Float    @default(3200)
+  savingsCommitment Float    @default(1000)
+  safetyReserve     Float    @default(500)
+  updatedAt         DateTime @updatedAt
+
+  @@map("financial_profiles")
+}
+
+model FinancialTransaction {
+  id              String   @id @default(uuid())
+  demoUserId      String
+  description     String
+  category        String
+  merchant        String?
+  amount          Float
+  currency        String   @default("USD")
+  transactionType String   @default("expense") // "expense" | "income"
+  transactionDate DateTime @default(now())
+  paymentStatus   String   @default("completed")
+  paymentMethod   String   @default("PayPal")
+  source          String   @default("paypal")
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  @@map("financial_transactions")
+}

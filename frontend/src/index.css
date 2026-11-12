@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+@import "./styles/tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #F6F4EE;
+  color: #242C27;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.font-heading {
+  font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #E9E6DE;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #858A83;
+}
+
+/* Linear & Stripe inspired AG Grid Quartz Customization */
+.ag-theme-quartz {
+  --ag-background-color: #F6F4EE;
+  --ag-header-background-color: #EFECE4;
+  --ag-header-foreground-color: #192923;
+  --ag-foreground-color: #242C27;
+  --ag-border-color: #E9E6DE;
+  --ag-row-border-color: #E9E6DE;
+  --ag-secondary-border-color: #E9E6DE;
+  --ag-row-hover-color: #ECE8DE;
+  --ag-selected-row-background-color: rgba(240, 138, 99, 0.12);
+  --ag-font-family: 'Inter', system-ui, sans-serif;
+  --ag-font-size: 13px;
+  --ag-border-radius: 12px;
+  --ag-cell-horizontal-padding: 14px;
+  --ag-header-column-resize-handle-color: #858A83;
+  --ag-header-font-weight: 600;
+  --ag-checkbox-checked-color: #192923;
+  --ag-active-color: #F08A63;
+  border-radius: 12px;
+}
+
+.ag-theme-quartz .ag-header-cell-label {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #858A83;
+}
+
+.ag-theme-quartz .ag-row {
+  transition: background-color 120ms ease;
+}
+
+.ag-theme-quartz .ag-cell {
+  display: flex;
+  align-items: center;
+}
