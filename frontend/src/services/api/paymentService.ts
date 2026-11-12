@@ -41,3 +41,4 @@ export const paymentService = {
     return apiRequest<any[]>('/api/purchases');
   },
 };
+

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, ShieldCheck, Loader2, ArrowRight, AlertTriangle, Eye, Ban } from 'lucide-react';
+import { CheckCircle2, ShieldCheck, Loader2, ArrowRight, AlertTriangle, Eye, Ban, FileText } from 'lucide-react';
 import type { Product } from '@/types/product';
 import type { Order } from '@/types/order';
 import type { Transaction } from '@/types/transaction';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
+import { InvoiceModal } from '@/components/common/InvoiceModal';
 import { formatCurrency } from '@/utils/currency';
 import { assessAffordability, calculateDiscretionary } from '@/utils/affordability';
 import { useAppStore } from '@/store/appStore';
@@ -24,6 +25,7 @@ export function CheckoutModal({ open, onClose, product }: CheckoutModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
 
   if (!product) return null;
 
@@ -350,25 +352,43 @@ export function CheckoutModal({ open, onClose, product }: CheckoutModalProps) {
             </div>
           </div>
 
-          <div className="flex gap-2.5 pt-2">
-            <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={handleClose}>
-              Continue Shopping
-            </Button>
+          <div className="flex flex-col gap-2 pt-2">
             <Button
-              variant="primary"
+              variant="outline"
               size="sm"
-              className="flex-1 text-xs font-bold"
-              onClick={() => {
-                handleClose();
-                navigate('/purchases');
-              }}
-              rightIcon={<ArrowRight size={13} />}
+              className="w-full text-xs font-bold text-[#19231F] border-[#19231F]/30 hover:bg-[#FAF9F5] flex items-center justify-center gap-1.5"
+              onClick={() => setIsInvoiceOpen(true)}
+              leftIcon={<FileText size={14} />}
             >
-              View Purchases
+              View & Download Invoice Receipt
             </Button>
+            <div className="flex gap-2.5">
+              <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={handleClose}>
+                Continue Shopping
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className="flex-1 text-xs font-bold"
+                onClick={() => {
+                  handleClose();
+                  navigate('/purchases');
+                }}
+                rightIcon={<ArrowRight size={13} />}
+              >
+                View Purchases
+              </Button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Invoice Modal */}
+      <InvoiceModal
+        open={isInvoiceOpen}
+        onClose={() => setIsInvoiceOpen(false)}
+        order={createdOrder}
+      />
     </Modal>
   );
 }

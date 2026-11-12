@@ -14,6 +14,7 @@ import { CheckoutModal } from '@/components/shopping/CheckoutModal';
 import { Sparkline } from '@/components/common/Sparkline';
 import { Button } from '@/components/common/Button';
 import { useAppStore } from '@/store/appStore';
+import { assistantService } from '@/services/api/assistantService';
 import { DEMO_PRODUCTS } from '@/data/demoData';
 import { formatCurrency } from '@/utils/currency';
 import { formatDate } from '@/utils/date';
@@ -23,12 +24,67 @@ import type { Product } from '@/types/product';
 
 export function Overview() {
   const navigate = useNavigate();
-  const { user, financialProfile, priceWatches, orders, transactions } = useAppStore();
+  const {
+    user,
+    financialProfile,
+    priceWatches,
+    orders,
+    transactions,
+    setChatOpen,
+    addChatMessage,
+    updateLastMessage,
+    currentConversationId,
+    setCurrentConversationId,
+  } = useAppStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProductForCheckout, setSelectedProductForCheckout] = useState<Product | null>(null);
   const [isWatchModalOpen, setIsWatchModalOpen] = useState(false);
   const [productToWatch, setProductToWatch] = useState<Product | null>(null);
+
+  const handleAskCompanion = (textPrompt?: string) => {
+    const text = (textPrompt || searchQuery).trim();
+    setChatOpen(true);
+
+    if (text) {
+      const userMsgId = 'u_' + Date.now();
+      addChatMessage({
+        id: userMsgId,
+        role: 'user',
+        content: text,
+        timestamp: new Date().toISOString(),
+      });
+
+      const botMsgId = 'b_' + (Date.now() + 1);
+      addChatMessage({
+        id: botMsgId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date().toISOString(),
+        isLoading: true,
+      });
+
+      assistantService
+        .chat(text, currentConversationId || undefined)
+        .then((result) => {
+          if (result?.conversationId) {
+            setCurrentConversationId(result.conversationId);
+          }
+          updateLastMessage({
+            content: result.response,
+            isLoading: false,
+            relatedProducts: result.relatedProducts,
+          });
+        })
+        .catch((err) => {
+          console.warn('Error from companion query on home page:', err);
+          updateLastMessage({
+            content: `I'm Morrow, your shopping assistant. I recorded your query: "${text}". Please check your available discretionary balance and let me know if you'd like to explore products!`,
+            isLoading: false,
+          });
+        });
+    }
+  };
 
   // Recommendations: 4 curated products
   const recommendations = DEMO_PRODUCTS.slice(0, 4);
@@ -106,6 +162,15 @@ export function Overview() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => handleAskCompanion()}
+              leftIcon={<Sparkles size={14} className="text-[#F08A63]" />}
+              className="text-xs font-bold bg-[#192923] hover:bg-[#2A3B34] text-white cursor-pointer shadow-xs"
+            >
+              Ask Morrow
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -278,19 +343,31 @@ export function Overview() {
                 className="w-full h-12 pl-11 pr-4 bg-white border border-[#E6DFD5] rounded-[10px] text-sm text-[#2A241F] placeholder:text-[#8C7D6F] focus:outline-none focus:border-[#2A241F] focus:ring-2 focus:ring-[#2A241F]/10 transition-all"
               />
             </div>
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="h-12 px-7 text-sm font-semibold bg-[#2A241F] hover:bg-[#3D342C] text-[#FAF7F2]"
-            >
-              Find Products
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={() => handleAskCompanion()}
+                leftIcon={<Sparkles size={15} className="text-[#F08A63]" />}
+                className="h-12 px-5 text-sm font-semibold border-[#192923] text-[#192923] hover:bg-[#192923]/5 cursor-pointer"
+              >
+                Ask Morrow
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="h-12 px-7 text-sm font-semibold bg-[#2A241F] hover:bg-[#3D342C] text-[#FAF7F2] cursor-pointer"
+              >
+                Find Products
+              </Button>
+            </div>
           </form>
 
           {/* Quick Search Chips */}
           <div className="flex items-center gap-2 pt-3 flex-wrap text-xs text-[#7D7164]">
-            <span className="text-[11px] font-semibold text-[#2A241F]">Try searching:</span>
+            <span className="text-[11px] font-semibold text-[#2A241F]">Ask companion or search:</span>
             {[
               'Headphones under ₹25,000',
               'A laptop for programming',
@@ -299,10 +376,12 @@ export function Overview() {
               <button
                 key={eg}
                 type="button"
-                onClick={() => handleExampleClick(eg)}
-                className="text-xs px-2.5 py-1 rounded-[6px] bg-white hover:bg-[#EFE8DD] text-[#2A241F] transition-colors cursor-pointer border border-[#E6DFD5]"
+                onClick={() => handleAskCompanion(eg)}
+                className="text-xs px-2.5 py-1 rounded-[6px] bg-white hover:bg-[#EFE8DD] text-[#2A241F] transition-colors cursor-pointer border border-[#E6DFD5] flex items-center gap-1"
+                title="Ask Morrow AI Companion"
               >
-                {eg}
+                <Sparkles size={11} className="text-[#F08A63]" />
+                <span>{eg}</span>
               </button>
             ))}
           </div>

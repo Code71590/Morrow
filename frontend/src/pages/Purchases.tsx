@@ -1,20 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ShoppingBag, CheckCircle2, Search, ShieldCheck
+  ShoppingBag, CheckCircle2, Search, ShieldCheck, FileText
 } from 'lucide-react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { EmptyState } from '@/components/common/EmptyState';
+import { InvoiceModal } from '@/components/common/InvoiceModal';
 import { useAppStore } from '@/store/appStore';
 import { formatCurrency } from '@/utils/currency';
 import { formatDate } from '@/utils/date';
 import { paymentService } from '@/services/api/paymentService';
+import type { Order } from '@/types/order';
 
 export function Purchases() {
   const navigate = useNavigate();
   const { orders, user, addOrder } = useAppStore();
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     paymentService.getPurchases().then((serverOrders) => {
@@ -165,6 +168,14 @@ export function Purchases() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedInvoiceOrder(order)}
+                      className="px-2.5 py-1 rounded-[8px] text-xs font-bold bg-[#F6F4EE] border border-[#E9E6DE] text-[#192923] hover:bg-[#E9E6DE] flex items-center gap-1.5 transition-colors cursor-pointer"
+                      title="View & Download Invoice"
+                    >
+                      <FileText size={12} className="text-[#192923]" />
+                      <span>Invoice</span>
+                    </button>
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 flex items-center gap-1">
                       <CheckCircle2 size={12} />
                       <span className="capitalize">{order.orderStatus}</span>
@@ -201,6 +212,12 @@ export function Purchases() {
           </div>
         )}
       </div>
+
+      <InvoiceModal
+        open={Boolean(selectedInvoiceOrder)}
+        onClose={() => setSelectedInvoiceOrder(null)}
+        order={selectedInvoiceOrder}
+      />
     </PageContainer>
   );
 }

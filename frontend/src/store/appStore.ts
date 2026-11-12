@@ -36,6 +36,7 @@ interface AppState {
   orders: Order[];
   chatOpen: boolean;
   chatMessages: ChatMessage[];
+  currentConversationId: string | null;
   demoSettings: DemoSettings;
   cartProduct: Product | null;
   isLoggedIn: boolean;
@@ -81,6 +82,9 @@ interface AppState {
   setChatOpen: (open: boolean) => void;
   addChatMessage: (message: ChatMessage) => void;
   updateLastMessage: (updates: Partial<ChatMessage>) => void;
+  setChatMessages: (messages: ChatMessage[]) => void;
+  setCurrentConversationId: (id: string | null) => void;
+  startNewChat: () => void;
   clearChat: () => void;
 
   setCartProduct: (product: Product | null) => void;
@@ -99,7 +103,8 @@ export const useAppStore = create<AppState>()(
       orders: DEMO_ORDERS,
       chatOpen: false,
       chatMessages: [],
-      demoSettings: { aiMode: false, showDemoLabels: true },
+      currentConversationId: null,
+      demoSettings: { aiMode: true, showDemoLabels: true },
       cartProduct: null,
       isLoggedIn: true,
       isProfileModalOpen: false,
@@ -246,7 +251,17 @@ export const useAppStore = create<AppState>()(
           return { chatMessages: msgs };
         }),
 
-      clearChat: () => set({ chatMessages: [] }),
+      setChatMessages: (messages) => set({ chatMessages: messages }),
+
+      setCurrentConversationId: (id) => set({ currentConversationId: id }),
+
+      startNewChat: () =>
+        set({
+          currentConversationId: null,
+          chatMessages: [],
+        }),
+
+      clearChat: () => set({ chatMessages: [], currentConversationId: null }),
 
       setCartProduct: (product) => set({ cartProduct: product }),
 
@@ -265,9 +280,9 @@ export const useAppStore = create<AppState>()(
           orders: DEMO_ORDERS,
           chatMessages: [],
           cartProduct: null,
-          demoSettings: { aiMode: false, showDemoLabels: true },
+          demoSettings: { aiMode: true, showDemoLabels: true },
         }),
     }),
-    { name: 'morrow-demo-state-v3' }
+    { name: 'morrow-demo-state-v4' }
   )
 );
